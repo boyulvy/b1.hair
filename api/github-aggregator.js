@@ -11,7 +11,7 @@ class GitHubAggregator {
     };
     
     if (this.apiKey) {
-      this.headers['Authorization'] = `token ${this.apiKey}`;
+      this.headers['Authorization'] = `Bearer ${this.apiKey}`;
     }
     
     this.languages = [

@@ -94,7 +94,9 @@ Endpoint called by Vercel Cron, requires token verification.
 ## ⏰ Scheduled Tasks
 
 Vercel Cron is configured to run daily at:
-- **UTC 02:00** (Beijing Time 10:00)
+- **UTC 02:00** (Beijing Time 10:00, China Standard Time UTC+8)
+
+**Note:** The schedule uses UTC time. Adjust for your local timezone as needed.
 
 Modify the `crons` section in `vercel.json` to adjust timing.
 

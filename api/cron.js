@@ -12,7 +12,13 @@ module.exports = async (req, res) => {
   
   // 验证请求（简单验证）
   const authToken = req.query.token || req.headers['x-cron-token'];
-  const validToken = process.env.CRON_TOKEN || 'your-secret-token';
+  const validToken = process.env.CRON_TOKEN;
+  
+  // If CRON_TOKEN is not set, reject all requests for security
+  if (!validToken) {
+    console.error('CRON_TOKEN environment variable is not set. Cron endpoint is disabled.');
+    return res.status(503).json({ error: 'Service unavailable: CRON_TOKEN not configured' });
+  }
   
   if (authToken !== validToken) {
     return res.status(401).json({ error: 'Unauthorized' });

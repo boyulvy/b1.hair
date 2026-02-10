@@ -15,16 +15,24 @@ class HackerNewsAggregator {
       const response = await axios.get(`${this.baseUrl}/topstories.json`);
       const storyIds = response.data.slice(0, limit);
       
+      // Fetch stories in parallel with batching (10 at a time to respect rate limits)
+      const batchSize = 10;
       const stories = [];
-      for (const id of storyIds) {
-        try {
-          const story = await this.getStoryDetails(id);
-          if (story && !story.deleted && !story.dead) {
-            stories.push(story);
-          }
-        } catch (error) {
-          console.log(`Failed to get story ${id}: ${error.message}`);
-        }
+      
+      for (let i = 0; i < storyIds.length; i += batchSize) {
+        const batch = storyIds.slice(i, i + batchSize);
+        const batchPromises = batch.map(id => 
+          this.getStoryDetails(id).catch(error => {
+            console.log(`Failed to get story ${id}: ${error.message}`);
+            return null;
+          })
+        );
+        
+        const batchResults = await Promise.all(batchPromises);
+        const validStories = batchResults.filter(story => 
+          story && !story.deleted && !story.dead
+        );
+        stories.push(...validStories);
       }
       
       return stories;

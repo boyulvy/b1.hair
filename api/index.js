@@ -10,6 +10,11 @@ app.use(express.json());
 const hnAggregator = new HackerNewsAggregator();
 const ghAggregator = new GitHubAggregator(process.env.GITHUB_API_KEY);
 
+// Warn if GitHub API key is missing
+if (!process.env.GITHUB_API_KEY) {
+  console.warn('WARNING: GITHUB_API_KEY environment variable is not set. GitHub API requests may hit rate limits quickly.');
+}
+
 let cachedHNResult = null;
 let cachedGHResult = null;
 let lastHNUpdateTime = null;
@@ -28,8 +33,14 @@ app.get('/', (req, res) => {
       '/api/stats': '获取统计信息'
     },
     cache: {
-      hasCache: cachedResult !== null,
-      lastUpdate: lastUpdateTime,
+      hn: {
+        hasCache: cachedHNResult !== null,
+        lastUpdate: lastHNUpdateTime
+      },
+      gh: {
+        hasCache: cachedGHResult !== null,
+        lastUpdate: lastGHUpdateTime
+      },
       cacheDuration: '30分钟'
     }
   });
