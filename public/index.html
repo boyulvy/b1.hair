@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker News 聚合器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .category {
+            margin-bottom: 40px;
+        }
+        
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .category-icon {
+            font-size: 1.8rem;
+            margin-right: 15px;
+            color: #667eea;
+        }
+        
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .category-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .story {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .story:hover {
+            background: #f0f2f5;
+            transform: translateX(5px);
+        }
+        
+        .story-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .story-rank {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .story-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        .story-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .meta-item i {
+            color: #667eea;
+        }
+        
+        .story-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+        
+        .story-link:hover {
+            background: #5a67d8;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .update-time {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 25px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+            
+            .story-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-robot"></i> Hacker News 聚合器</h1>
+            <p class="subtitle">每日精选技术内容，智能分类整理</p>
+            <div class="update-time" id="updateTime">正在加载...</div>
+        </div>
+        
+        <div class="stats-bar" id="statsBar">
+            <!-- 统计信息将通过JS动态加载 -->
+        </div>
+        
+        <div class="content" id="content">
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>正在加载最新内容...</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> 刷新数据
+            </button>
+            <button class="btn btn-secondary" onclick="viewTelegramFormat()">
+                <i class="fab fa-telegram"></i> 查看Telegram格式
+            </button>
+        </div>
+        
+        <div class="footer">
+            <p>Powered by Hacker News API • 自动更新 • 为 Alex kyo 主人定制 🦞</p>
+            <p>部署在 Vercel • 开源项目</p>
+        </div>
+    </div>
+
+    <script>
+        // API 基础URL
+        const API_BASE = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api' 
+            : '/api';
+        
+        // 加载数据
+        async function loadData() {
+            try {
+                showLoading();
+                
+                const response = await fetch(`${API_BASE}/latest`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                renderData(data);
+                
+            } catch (error) {
+                showError(error.message);
+                console.error('加载数据失败:', error);
+            }
+        }
+        
+        // 渲染数据
+        function renderData(data) {
+            // 更新统计信息
+            renderStats(data);
+            
+            // 更新内容
+            renderContent(data);
+            
+            // 更新时间显示
+            const updateTime = document.getElementById('updateTime');
+            const time = new Date(data.timestamp).toLocaleString('zh-CN');
+            updateTime.textContent = `最后更新: ${time} ${data.cached ? '(缓存)' : ''}`;
+            
+            // 隐藏加载状态
+            hideLoading();
+        }
+        
+        // 渲染统计信息
+        function renderStats(data) {
+            const statsBar = document.getElementById('statsBar');
+            
+            const stats = [
+                { icon: 'fas fa-newspaper', value: data.totalStories, label: '总故事数' },
+                { icon: 'fas fa-star', value: data.filteredStories, label: '优质内容' },
+                { icon: 'fas fa-tags', value: Object.keys(data.categorized).length, label: '分类数量' },
+                { icon: 'fas fa-database', value: 'Hacker News', label: '数据来源' }
+            ];
+            
+            statsBar.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <i class="${stat.icon}"></i>
+                    <div class="stat-value">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('');
+        }
+        
+        // 渲染内容
+        function renderContent(data) {
+            const content = document.getElementById('content');
+            
+            if (data.filteredStories === 0) {
+                content.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>今天没有收集到内容，请稍后再试。</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            // 渲染每个分类
+            for (const [category, stories] of Object.entries(data.categorized)) {
+                if (stories.length === 0) continue;
+                
+                html += `
+                <div class="category">
+                    <div class="category-header">
+                        <div class="category-icon">🏷️</div>
+                        <div class="category-title">${category}</div>
+                        <div class="category-count">${stories.length}条</div>
+                    </div>
+                `;
+                
+                // 渲染每个故事
+                stories.slice(0, 5).forEach((story, index) => {
+                    const title = story.title.length > 80 
+                        ? story.title.substring(0, 80) + '...' 
+                        : story.title;
+                    
+                    const domain = story.url ? new URL(story.url).hostname : '无链接';
+                    
+                    html += `
+                    <div class="story">
+                        <div class="story-header">
+                            <div class="story-rank">${index + 1}</div>
+                            <div class="story-title">${title}</div>
+                        </div>
+                        <div class="story-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span>${story.score || 0} 分</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-comments"></i>
+                                <span>${story.descendants || 0} 评论</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-user"></i>
+                                <span>${story.by || '匿名'}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-link"></i>
+                                <span>${domain}</span>
+                            </div>
+                        </div>
+                        ${story.url ? `
+                        <a href="${story.url}" target="_blank" class="story-link">
+                            <i class="fas fa-external-link-alt"></i> 阅读原文
+                        </a>
+                        ` : ''}
+                    </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+            
+            content.innerHTML = html;
+        }
+        
+        // 刷新数据
+        async function refreshData() {
+            try {
+                showLoading();
+                
+                const response = await fetch(`${API_BASE}/aggregate`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    // 重新加载数据
+                    await loadData();
+                    alert('数据刷新成功！');
+                } else {
+                    throw new Error(result.message || '刷新失败');
+                }
+                
+            } catch (error) {
+                alert('刷新失败: ' + error.message);
+                console.error('刷新失败:', error);
+                hideLoading();
+            }
+        }
+        
+        // 查看Telegram格式
+        async function viewTelegramFormat() {
+            try {
+                const response = await fetch(`${API_BASE}/telegram`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    // 在新窗口中显示
+                    const newWindow = window.open();
+                    newWindow.document.write(`
+                        <html>
+                        <head>
+                            <title>Telegram 消息格式</title>
+                            <style>
+                                body { font-family: monospace; white-space: pre-wrap; padding: 20px; }
+                                .container { max-width: 800px; margin: 0 auto; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h2>Telegram 消息格式</h2>
+                                <hr>
+                                ${data.message.replace(/\n/g, '<br>')}
+                            </div>
+                        </body>
+                        </html>
+                    `);
+                }
+                
+            } catch (error) {
+                alert('获取Telegram格式失败: ' + error.message);
+                console.error('获取失败:', error);
+            }
+        }
+        
+        // 显示/隐藏加载状态
+        function showLoading() {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>正在加载最新内容...</p>
+                </div>
+            `;
+        }
+        
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function showError(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>加载失败: ${message}</p>
+                    <button onclick="loadData()" style="margin-top: 10px; padding: 8px 16px; background: #c33; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        重试
+                    </button>
+                </div>
+            `;
+        }
+        
+        // 页面加载时获取数据
+        document.addEventListener('DOMContentLoaded', loadData);
+        
+        // 每5分钟自动刷新
+        setInterval(loadData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
